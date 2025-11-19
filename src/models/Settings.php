@@ -115,6 +115,12 @@ class Settings extends Model
      */
     public $recaptchaThreshold = 0.5;
 
+    /**
+     * @var int
+     */
+    public int $pruneAfterDays = 0;
+
+
     // Public Methods
     // =========================================================================
 
@@ -142,6 +148,7 @@ class Settings extends Model
 
             ['recaptchaTimeout', 'integer'],
             ['recaptchaThreshold', 'double', 'max' => 1, 'min' => 0],
+            ['pruneAfterDays', 'integer', 'min' => 0],
 
             [['confirmationTemplate', 'confirmationSubject'], 'required', 'when' => static function ($model) {
                 return $model->enableConfirmationEmail == true;

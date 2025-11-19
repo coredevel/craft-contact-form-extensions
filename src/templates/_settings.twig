@@ -21,6 +21,19 @@
         on: settings.enableDatabase == true
     }) }}
 
+    {{ forms.textField({
+        label: 'Auto-prune submissions after (days)',
+        instructions: 'Automatically delete form submissions older than this many days. Set to 0 to disable automatic pruning. The prune job runs every 6 hours.',
+        id: 'pruneAfterDays',
+        name: 'pruneAfterDays',
+        type: 'number',
+        min: 0,
+        disabled: 'pruneAfterDays' in overrides,
+        warning: 'pruneAfterDays' in overrides ? configWarning('pruneAfterDays'),
+        value: settings.pruneAfterDays,
+        errors: settings.getErrors('pruneAfterDays'),
+    }) }}
+
     {{ forms.lightswitchField({
         label: 'Send confirmation email',
         instructions: 'Sends a confirmation email to the person who filled in the contact form, a `fromEmail` field is required.',

@@ -39,4 +39,6 @@ return [
     'recaptchaTimeout'        => 5,
     'recaptchaThreshold'      => .5,
     'recaptchaDebug'          => false,
+
+    'pruneAfterDays'          => 30,
 ];

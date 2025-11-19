@@ -19,7 +19,7 @@ class ContactFormExtensionsVariable
         return ContactFormExtensions::$plugin->name;
     }
 
-    public function recaptcha(string $localeOrAction = null)
+    public function recaptcha(?string $localeOrAction = null)
     {
         if (ContactFormExtensions::$plugin->settings->recaptcha) {
             return ContactFormExtensions::$plugin->contactFormExtensionsService->getRecaptcha()->render($localeOrAction);
@@ -28,12 +28,23 @@ class ContactFormExtensionsVariable
         return '';
     }
 
-    public function submissions($criteria = null): ElementQueryInterface
+    public function submissions(array $criteria = []): ElementQueryInterface
     {
         $query = Submission::find();
 
-        if ($criteria) {
+        // Apply any passed criteria (form, subject, fromEmail, etc.)
+        if (!empty($criteria)) {
             Craft::configure($query, $criteria);
+        }
+
+        // Sensible default ordering: newest first
+        if ($query->orderBy === null) {
+            $query->orderBy(['elements.dateCreated' => SORT_DESC]);
+        }
+
+        // Safety net: if no limit specified, default to something sane
+        if ($query->limit === null) {
+            $query->limit(50);
         }
 
         return $query;

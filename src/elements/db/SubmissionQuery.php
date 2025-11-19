@@ -2,6 +2,7 @@
 
 namespace hybridinteractive\contactformextensions\elements\db;
 
+use Craft;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 
@@ -50,11 +51,10 @@ class SubmissionQuery extends ElementQuery
 
     protected function beforePrepare(): bool
     {
-        // join in the products table
         $this->joinElementTable('contactform_submissions');
 
-        // select the columns
         $this->query->select([
+            'elements.id',
             'contactform_submissions.form',
             'contactform_submissions.subject',
             'contactform_submissions.fromName',

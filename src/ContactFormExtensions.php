@@ -81,6 +81,44 @@ class ContactFormExtensions extends Plugin
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerCpRoutes();
         }
+
+        // Schedule the initial prune job (runs once, then self-reschedules)
+        $this->_scheduleInitialPruneJob();
+    }
+
+    /**
+     * Schedule the initial prune job (runs once, then self-reschedules).
+     */
+    private function _scheduleInitialPruneJob(): void
+    {
+        $request = Craft::$app->getRequest();
+        $settings = $this->getSettings();
+
+        // Only run in CP or console, and only if pruning is enabled
+        if (!($request->getIsCpRequest() || $request->getIsConsoleRequest())) {
+            return;
+        }
+
+        if (!$settings->enableDatabase || !$settings->pruneAfterDays || $settings->pruneAfterDays <= 0) {
+            return;
+        }
+
+        $cache = Craft::$app->cache;
+        $lockKey = 'contactFormExtensions_pruneJobScheduled';
+
+        // Check if we've already scheduled the recurring job (cache for 7 days)
+        if ($cache->get($lockKey)) {
+            return;
+        }
+
+        // Set a long-lived flag so we don't reschedule on every request
+        $cache->set($lockKey, true, 604800); // 7 days
+
+        Craft::info('[CFE] Scheduling initial self-rescheduling prune job', __METHOD__);
+
+        Craft::$app->queue->push(new \hybridinteractive\contactformextensions\jobs\PruneSubmissionsJob([
+            'reschedule' => true,
+        ]));
     }
 
     /**
@@ -274,7 +312,7 @@ class ContactFormExtensions extends Plugin
                 $message->setTo($e->submission->fromEmail);
 
                 if (isset(App::mailSettings()->fromEmail)) {
-                    $message->setFrom([Craft::parseEnv(App::mailSettings()->fromEmail) => Craft::parseEnv(App::mailSettings()->fromName)]);
+                    $message->setFrom([App::parseEnv(App::mailSettings()->fromEmail) => App::parseEnv(App::mailSettings()->fromName)]);
                 } else {
                     $message->setFrom($e->message->getTo());
                 }
